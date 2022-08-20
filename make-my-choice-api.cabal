@@ -34,6 +34,7 @@ library
   build-depends:
       aeson
     , base >=4.7 && <5
+    , postgresql-simple
     , servant-server
     , uuid
     , wai
@@ -51,6 +52,7 @@ executable make-my-choice-api-exe
       aeson
     , base >=4.7 && <5
     , make-my-choice-api
+    , postgresql-simple
     , servant-server
     , uuid
     , wai
@@ -69,6 +71,7 @@ test-suite make-my-choice-api-test
       aeson
     , base >=4.7 && <5
     , make-my-choice-api
+    , postgresql-simple
     , servant-server
     , uuid
     , wai

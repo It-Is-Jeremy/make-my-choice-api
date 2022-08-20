@@ -3,6 +3,8 @@
 {-# LANGUAGE TypeOperators   #-}
 {-# LANGUAGE DeriveGeneric   #-}
 {-# LANGUAGE KindSignatures  #-}
+{-# LANGUAGE OverloadedStrings #-}
+
 module Lib
     ( startApp
     , app
@@ -18,6 +20,7 @@ import GHC.TypeLits
 import Control.Monad.IO.Class (liftIO)
 import Data.UUID
 import Data.UUID.V4
+import Database.PostgreSQL.Simple
 
 data Set = Set
   {
@@ -39,8 +42,10 @@ setServer = getSet :<|> createSet
 
         createSet :: [String] -> Handler Set
         createSet setElements = do
+          connection <- liftIO (connectPostgreSQL "postgresql://postgres:postgres@db")
           uuid <- liftIO (nextRandom)
-          return (Set uuid setElements)
+          let newSet = Set uuid setElements
+          return newSet
 
 startApp :: IO ()
 startApp = run 8080 app
