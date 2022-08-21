@@ -21,6 +21,7 @@ import Control.Monad.IO.Class (liftIO)
 import Data.UUID
 import Data.UUID.V4
 import Database.PostgreSQL.Simple
+import qualified Data.Text as Text
 
 data Set = Set
   {
@@ -35,15 +36,23 @@ type SetApi = "set" :>
                  :<|> "set" :>
                     ReqBody '[JSON] [String] :> Post '[JSON] Set
 
+getConnection :: IO Connection
+getConnection = connectPostgreSQL "postgresql://postgres:postgres@db"
+
 setServer :: Server SetApi
 setServer = getSet :<|> createSet
   where getSet :: UUID -> Handler Set
-        getSet _setId = return (Set _setId ["Jeremy", "Ash"])
+        getSet _setId = do
+          connection <- liftIO getConnection
+          xs <- query_ connection "Select id, elements from set_table where id=?" (toString <$> _setId)
+          forM_ xs $ \(id, elements) ->
+            return (Set _setId elements)
 
         createSet :: [String] -> Handler Set
         createSet setElements = do
-          connection <- liftIO (connectPostgreSQL "postgresql://postgres:postgres@db")
+          connection <- liftIO getConnection
           uuid <- liftIO (nextRandom)
+          execute connection "insert into set_table (id, elements) values (?, ?)" (uuid, setElements)
           let newSet = Set uuid setElements
           return newSet
 

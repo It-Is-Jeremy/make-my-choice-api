@@ -1,0 +1,1 @@
+CREATE TABLE set_table(id VARCHAR(255), elements VARCHAR(255)[]);
