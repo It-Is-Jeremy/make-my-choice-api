@@ -36,6 +36,7 @@ library
     , base >=4.7 && <5
     , postgresql-simple
     , servant-server
+    , text
     , uuid
     , wai
     , warp
@@ -54,6 +55,7 @@ executable make-my-choice-api-exe
     , make-my-choice-api
     , postgresql-simple
     , servant-server
+    , text
     , uuid
     , wai
     , warp
@@ -73,6 +75,7 @@ test-suite make-my-choice-api-test
     , make-my-choice-api
     , postgresql-simple
     , servant-server
+    , text
     , uuid
     , wai
     , warp

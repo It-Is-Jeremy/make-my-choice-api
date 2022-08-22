@@ -27,6 +27,7 @@ dependencies:
 - warp
 - uuid
 - postgresql-simple
+- text
 
 ghc-options:
 - -Wall

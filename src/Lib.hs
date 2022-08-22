@@ -21,7 +21,9 @@ import Control.Monad.IO.Class (liftIO)
 import Data.UUID
 import Data.UUID.V4
 import Database.PostgreSQL.Simple
+import Database.PostgreSQL.Simple.Types
 import qualified Data.Text as Text
+import Control.Monad
 
 data Set = Set
   {
@@ -39,20 +41,26 @@ type SetApi = "set" :>
 getConnection :: IO Connection
 getConnection = connectPostgreSQL "postgresql://postgres:postgres@db"
 
+getElements :: Connection -> UUID -> IO [Only (PGArray Text.Text)]
+getElements conn id = query conn "Select elements from set_table where id=?" (Only ((toString id) :: String))
+
+
 setServer :: Server SetApi
 setServer = getSet :<|> createSet
   where getSet :: UUID -> Handler Set
         getSet _setId = do
           connection <- liftIO getConnection
-          xs <- query_ connection "Select id, elements from set_table where id=?" (toString <$> _setId)
-          forM_ xs $ \(id, elements) ->
-            return (Set _setId elements)
+          fromRows <- liftIO (getElements connection _setId)
+          let mappedRows = map fromOnly (fromRows :: [Only (PGArray Text.Text)])
+          let mappedLists = fromPGArray (head mappedRows)
+          let resultElements = map Text.unpack (mappedLists)
+          return (Set _setId (resultElements))
 
         createSet :: [String] -> Handler Set
         createSet setElements = do
           connection <- liftIO getConnection
           uuid <- liftIO (nextRandom)
-          execute connection "insert into set_table (id, elements) values (?, ?)" (uuid, setElements)
+          res <- liftIO (execute connection "insert into set_table (id, elements) values (?, ?)" ((toString uuid) :: String, PGArray (setElements)))
           let newSet = Set uuid setElements
           return newSet
 
